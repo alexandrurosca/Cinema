@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Cinema.DAO
 {
@@ -38,8 +39,9 @@ namespace Cinema.DAO
             return _usersDAL;
         }
 
+        //Movies
 
-        public Movie getMovies(String title)
+        public Movie getMovie(String title)
         {
             Movie u = null;
             String sql = "SELECT * FROM Movie WHERE title='" + title + "'";
@@ -49,22 +51,94 @@ namespace Cinema.DAO
                 SqlCommand cmd = new SqlCommand(sql, _conn);
                 SqlDataReader reader = cmd.ExecuteReader();
                 reader.Read();
-                u = new Movie(reader["title"].ToString(), reader["director"].ToString(), reader["distribution"].ToString(), DateTime.Parse(reader["premiereDate"].ToString()), int.Parse(reader["noOfTickets"].ToString()), DateTime.Parse(reader["endDate"].ToString()));
+                u = new Movie(reader["title"].ToString(), reader["director"].ToString(), reader["distribution"].ToString(), DateTime.Parse(reader["premiereDate"].ToString()), int.Parse(reader["noOfTickets"].ToString()), DateTime.Parse(reader["endDate"].ToString()), DateTime.Parse(reader["dailyHour"].ToString()));
                 _conn.Close();
 
             }
             catch (SqlException e)
             {
-                Console.WriteLine(e.Message);
                 return null;
+                throw e;
+                
             }
             return u;
         }
 
-        public ArrayList getTickets(Movie movie)
+        public List<Movie> getMovies()
+        {
+            Movie movie = null;
+            List<Movie> result = new List<Movie>();
+
+            String sql = "SELECT * FROM Movie";
+            try
+            {
+                _conn.Open();
+                SqlCommand cmd = new SqlCommand(sql, _conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read()) {
+                    movie = new Movie(reader["title"].ToString(), reader["director"].ToString(), reader["distribution"].ToString(), DateTime.Parse(reader["premiereDate"].ToString()), int.Parse(reader["noOfTickets"].ToString()), DateTime.Parse(reader["endDate"].ToString()), DateTime.Parse(reader["dailyHour"].ToString()) );
+                    result.Add(movie);
+                }
+                _conn.Close();
+
+            }
+            catch (SqlException e)
+            {
+                _conn.Close();
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            return result;
+        }
+
+        public void insertMovie(Movie movie) {
+            String premiereDate = movie.premiereDate.ToString("yyyy-MM-dd hh:mm:ss");
+            String endDate = movie.endDate.ToString("yyyy-MM-dd");
+            String dailyHour = movie.dailyHour.ToString("hh:mm:ss");
+
+            MessageBox.Show("premiereDate: " + premiereDate + "; endDate:" + endDate);
+
+            String sql = "INSERT INTO Movie VALUES ('" + movie.title + "' , '" + movie.director + "' , '" + movie.distribution + "' , '" + premiereDate + "' , '" + movie.noOfTickets.ToString() + "' , '" + endDate + "' , '"+ dailyHour + "')";
+            try
+            {
+                _conn.Open();
+                SqlCommand cmd = new SqlCommand(sql, _conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                _conn.Close();
+
+            }
+            catch (SqlException e)
+            {
+                _conn.Close();
+                throw e;
+            }
+        }
+
+        public void deleteMovie(String title) {
+            String sql = "DELETE FROM Movie WHERE title='" + title + "'";
+            try
+            {
+                _conn.Open();
+                SqlCommand cmd = new SqlCommand(sql, _conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                _conn.Close();
+
+            }
+            catch (SqlException e)
+            {
+                throw e;
+                _conn.Close();
+            }
+
+        }
+
+       // public void updateMovie()
+
+        //Tickets
+        public List<Ticket> getTickets(Movie movie)
         {
             Ticket ticket = null;
-            ArrayList result = new ArrayList(); 
+            List<Ticket> result = new List<Ticket>();
             String sql = "SELECT * FROM Ticket WHERE movie='" + movie.title + "'";
             try
             {
@@ -81,26 +155,44 @@ namespace Cinema.DAO
             }
             catch (SqlException e)
             {
-                Console.WriteLine(e.Message);
+                _conn.Close();
                 return null;
+                throw e;
+                
             }
             return result;
         }
 
-        public ArrayList getMovies()
-        {
-            Movie movie = null;
-            ArrayList result = new ArrayList();
-
-            String sql = "SELECT * FROM Movie";
+        public void insertTicket(Ticket ticket) {
+            String airDate = ticket.airDate.ToString("yyyy-MM-dd");
+            String sql = "INSERT INTO Ticket VALUES ('" + ticket.movie.title + "' , '" + ticket.row.ToString() + "' , '" + ticket.col.ToString() + "' , '" + airDate + "')";
             try
             {
                 _conn.Open();
                 SqlCommand cmd = new SqlCommand(sql, _conn);
                 SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read()) {
-                    movie = new Movie(reader["title"].ToString(), reader["director"].ToString(), reader["distribution"].ToString(), DateTime.Parse(reader["premiereDate"].ToString()), int.Parse(reader["noOfTickets"].ToString()), DateTime.Parse(reader["endDate"].ToString()));
-                    result.Add(movie);
+                _conn.Close();
+
+            }
+            catch (SqlException e)
+            {
+                _conn.Close();
+                throw e;
+            }
+        }
+
+        public int numberOfTickets(Movie movie, DateTime reserveDate) {
+
+            int result = 0;
+            String airDate = reserveDate.ToString("yyyy-MM-dd");
+            String sql = "SELECT COUNT(Ticket.movie) as tickets FROM Ticket WHERE Ticket.movie='" + movie.title + "' " + " AND Ticket.airDate = '" + airDate + "'";
+            try
+            {
+                _conn.Open();
+                SqlCommand cmd = new SqlCommand(sql, _conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                if (reader.Read()) {
+                    result = (int)reader["tickets"];
                 }
                 _conn.Close();
 
@@ -108,27 +200,11 @@ namespace Cinema.DAO
             catch (SqlException e)
             {
                 _conn.Close();
-                Console.WriteLine(e.Message);
-                return null;
+                return 0;
+                throw e;
+
             }
-            return result;
+            return result; 
         }
-
-        public void insertMovie(String title, String director, String distribution, String premiereDate, String tickets, String endDate) {
-            String sql = "INSERT INTO Movie VALUES ('" + title + "' , '" + director + "' , '" + distribution + "' , '" + premiereDate + "' , '" + tickets + "' , '" + endDate+ "')";
-            try
-            {
-                _conn.Open();
-                SqlCommand cmd = new SqlCommand(sql, _conn);
-                SqlDataReader reader = cmd.ExecuteReader();
-                _conn.Close();
-
-            }
-            catch (SqlException e)
-            {
-                _conn.Close();
-            }
-        }
-
     }
 }

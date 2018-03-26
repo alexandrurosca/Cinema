@@ -1,4 +1,5 @@
 ﻿using Cinema.DAO;
+using Cinema.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,8 +13,10 @@ namespace Cinema.BLL
     {
         MoviesDAO moviesDAO = MoviesDAO.getInstance();
 
-        public ArrayList getMovies() {
-            ArrayList movies = new ArrayList();
+        //Movies
+
+        public List<Movie> getMovies() {
+            List<Movie> movies = new List<Movie>();
             try
             {
                 movies = moviesDAO.getMovies();
@@ -25,10 +28,52 @@ namespace Cinema.BLL
             return movies;
         }
 
-        public void insertMovie(String title, String director, String distribution, DateTime premiereDate, int tickets, DateTime endDate) {
+        public void insertMovie(Movie movie) {
             try
             {
-                moviesDAO.insertMovie(title, director, distribution, premiereDate.ToString("yyyy-MM-dd"), tickets.ToString(), endDate.ToString("yyyy-MM-dd"));
+                moviesDAO.insertMovie(movie);
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+        }
+
+        public void deleteMovie(String title) {
+            try
+            {
+                moviesDAO.deleteMovie(title);
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+        }
+
+        //Tickets
+        public List<Ticket> getTickets(Movie movie)
+        {
+            List<Ticket> tickets = new List<Ticket>();
+            try
+            {
+                tickets = moviesDAO.getTickets(movie);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return tickets;
+        }
+
+        public void insertTicket(Movie movie, int row, int col, DateTime reserveDate) {
+       
+            try
+            {
+                int noOfTickets = moviesDAO.numberOfTickets(movie, reserveDate);
+
+                if (noOfTickets < movie.noOfTickets) {
+                    moviesDAO.insertTicket(new Ticket(movie, row, col, reserveDate));    
+                }
+
             }
             catch (Exception ex) {
                 throw ex;

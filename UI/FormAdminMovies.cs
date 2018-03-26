@@ -1,4 +1,5 @@
 ﻿using Cinema.BLL;
+using Cinema.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,18 +22,19 @@ namespace Cinema.UI
         }
 
         private void button1_Click(object sender, EventArgs e)
-        {   
-            ArrayList movies = new ArrayList();
+        {
+            int result = 0;
 
             try
             {
-                movies = movieService.getMovies();
+                //movieService.insertMovie(new Movie("Pain", "asdasd", "asdasd", new DateTime(1222222222222), 123, new DateTime(2222222222223333), new DateTime(123123)));
+                result =  movieService.numberOfTickets(new Movie("Titanic"), new DateTime(2013, 03, 20));
             }
             catch (Exception ex) {
                 MessageBox.Show(ex.Message);
             }
-            
-           // movieService.insertMovie("abc", "aa","bb", new DateTime(999999999999), 400, new DateTime(9999999999999));
+
+            MessageBox.Show("Number of tickets: " + result.ToString());
 
         }
 

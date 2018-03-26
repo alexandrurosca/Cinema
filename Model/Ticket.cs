@@ -9,10 +9,10 @@ namespace Cinema.Model
     class Ticket
     {
         
-        private Movie movie { get; set; }
-        private int row { get; set; }
-        private int col { get; set; }
-        private DateTime airDate { get; set; }
+        public Movie movie { get; set; }
+        public  int row { get; set; }
+        public int col { get; set; }
+        public DateTime airDate { get; set; }
 
         public Ticket(Movie movie, int row, int col, DateTime date)
         {
